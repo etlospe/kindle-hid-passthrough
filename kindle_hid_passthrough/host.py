@@ -9,6 +9,7 @@ Author: Lucas Zampieri <lzampier@redhat.com>
 """
 
 import asyncio
+import subprocess
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -1431,6 +1432,26 @@ class HIDHost:
         if data != self._last_report:
             log.info(f"[BLE] Report (ID={report_id}): {data.hex()}")
             self._last_report = data
+
+            data_hex = data.hex()
+            if "018000" in data_hex:
+                try:
+                    subprocess.run(
+                        ["curl", "http://127.0.0.1:8080/koreader/event/GotoViewRel/1"],
+                        timeout=5,
+                        capture_output=True
+                    )
+                except Exception as e:
+                    log.warning(f"curl failed: {e}")
+            elif "014000" in data_hex:
+                try:
+                    subprocess.run(
+                        ["curl", "http://127.0.0.1:8080/koreader/event/GotoViewRel/-1"],
+                        timeout=5,
+                        capture_output=True
+                    )
+                except Exception as e:
+                    log.warning(f"curl failed: {e}")
 
         if self.uhid_device:
             try:
